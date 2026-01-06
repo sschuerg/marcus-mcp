@@ -7,6 +7,12 @@ import { tools as workflowTools } from './tools/workflowTools.js';
 import { sherlockTools } from './tools/sherlockTools.js';
 import { optigemTools } from './tools/optigemTools.js';
 import { n8nKnowledgeTools } from './tools/n8nKnowledgeTools.js';
+import Debug from 'debug';
+
+const debugServer = Debug('mcp:server');
+const debugSSE = Debug('mcp:sse');
+const debugWebhook = Debug('mcp:webhook');
+const debugTool = Debug('mcp:tool');
 
 const tools = [...workflowTools, ...sherlockTools, ...optigemTools, ...n8nKnowledgeTools];
 
@@ -52,7 +58,7 @@ async function main() {
     if (!tool) {
       throw new Error(`Tool not found: ${request.params.name}`);
     }
-    console.log(`[Tool] Executing: ${request.params.name}`);
+    debugTool(`Executing: ${request.params.name}`);
     try {
       return await tool.handler(request.params.arguments);
     } catch (error) {
@@ -70,17 +76,17 @@ async function main() {
     
     // WORKAROUND: If n8n sends a POST with a JSON body, it's likely trying to do stateless HTTP JSON-RPC
     if (req.method === 'POST' && req.body && req.body.jsonrpc) {
-        console.log(`[SSE] Injecting initial JSON-RPC message from POST body:`, JSON.stringify(req.body));
+        debugSSE(`Injecting initial JSON-RPC message from POST body:`, JSON.stringify(req.body));
         
         // Check for SSE desire
         const accept = req.headers['accept'] || '';
         if (!accept.includes('text/event-stream')) {
-             console.log(`[HTTP-RPC] Client wants JSON. Sending 406.`);
+             debugSSE(`Client wants JSON (HTTP-RPC). Sending 406.`);
              return res.status(406).json({ error: "Not Acceptable. Please use SSE." });
         }
     }
 
-    console.log(`[SSE] New connection request from ${req.ip} (${req.method})`);
+    debugSSE(`New connection request from ${req.ip} (${req.method})`);
     
     // 1. Send headers manually
     res.writeHead(200, {
@@ -104,10 +110,10 @@ async function main() {
     activeTransport = transport;
     transports.set(sessionId, transport);
     
-    console.log(`[SSE] Session created: ${sessionId}`);
+    debugSSE(`Session created: ${sessionId}`);
 
     res.on('close', () => {
-      console.log(`[SSE] Session closed: ${sessionId}`);
+      debugSSE(`Session closed: ${sessionId}`);
       transports.delete(sessionId);
       if (activeTransport === transport) activeTransport = null;
     });
@@ -117,17 +123,17 @@ async function main() {
     const host = req.get('host');
     const endpointUrl = `${protocol}://${host}/message`;
     res.write(`event: endpoint\ndata: ${endpointUrl}\n\n`);
-    console.log(`[SSE] Advertised endpoint: ${endpointUrl}`);
+    debugSSE(`Advertised endpoint: ${endpointUrl}`);
 
     await server.connect(transport);
-    console.log(`[SSE] Connected and streaming`);
+    debugSSE(`Connected and streaming`);
 
     // 4. Inject initial message if present
     if (req.method === 'POST' && req.body && req.body.jsonrpc) {
         if (transport.onmessage) {
             try {
                 transport.onmessage(req.body);
-                console.log(`[SSE] Injected initial message.`);
+                debugSSE(`Injected initial message.`);
             } catch (err) {
                 console.error(`[SSE] Failed to inject:`, err);
             }
@@ -142,7 +148,7 @@ async function main() {
     
     if (!transport) {
         if (activeTransport) {
-            console.log(`[Message] No sessionId, using active transport.`);
+            debugServer(`No sessionId in request, using active transport.`);
             transport = activeTransport;
         } else {
             console.warn(`[Message] No active session found for request.`);
@@ -176,7 +182,7 @@ async function main() {
       return res.status(404).json({ error: `Tool '${toolName}' not found.` });
     }
 
-    console.log(`[Webhook] Executing tool: ${toolName}`);
+    debugWebhook(`Executing tool: ${toolName}`);
     try {
       // Result is now an MCP Standard Object: { content: [{ type: "text", text: "JSON..." }] }
       const mcpResult = await tool.handler(args || {});
@@ -187,7 +193,7 @@ async function main() {
               const rawResult = JSON.parse(mcpResult.content[0].text);
               return res.json(rawResult);
           } catch (parseError) {
-              console.warn("[Webhook] Failed to parse tool response content as JSON, returning raw text.");
+              debugWebhook("Failed to parse tool response content as JSON, returning raw text.");
               return res.json({ result: mcpResult.content[0].text });
           }
       }
@@ -213,6 +219,7 @@ async function main() {
 │  Port:    ${port.toString().padEnd(38)} │
 │  SSE:     /sse                                   │
 │  Auth:    DISABLED                               │
+│  Debug:   Enabled (env: DEBUG=mcp:*)             │
 └──────────────────────────────────────────────────┘
     `);
   });

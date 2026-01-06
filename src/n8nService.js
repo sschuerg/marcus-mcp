@@ -1,5 +1,8 @@
 import axios from 'axios';
 import { config } from './env.js';
+import Debug from 'debug';
+
+const debug = Debug('mcp:n8n');
 
 export class N8nService {
   constructor() {
@@ -10,9 +13,28 @@ export class N8nService {
         'Content-Type': 'application/json',
       },
     });
+
+    // Request Interceptor for logging
+    this.client.interceptors.request.use(req => {
+        debug(`[REQ] ${req.method?.toUpperCase()} ${req.url}`);
+        return req;
+    });
+
+    // Response Interceptor for logging
+    this.client.interceptors.response.use(
+        res => {
+            debug(`[RES] ${res.status} ${res.config.url}`);
+            return res;
+        },
+        err => {
+            debug(`[ERR] ${err.response?.status || 'N/A'} ${err.config?.url || 'Unknown'}: ${err.message}`);
+            return Promise.reject(err);
+        }
+    );
   }
 
   async createWorkflow(name, nodes, connections, settings = {}) {
+    debug(`createWorkflow: ${name}`);
     try {
       const payload = { name, nodes, connections, settings };
       const response = await this.client.post('/workflows', payload);
@@ -23,6 +45,7 @@ export class N8nService {
   }
 
   async listWorkflows() {
+    debug(`listWorkflows`);
     try {
       const response = await this.client.get('/workflows');
       return response.data;
@@ -32,6 +55,7 @@ export class N8nService {
   }
 
   async getWorkflow(id) {
+    debug(`getWorkflow: ${id}`);
     try {
       const response = await this.client.get(`/workflows/${id}`);
       return response.data;
@@ -41,6 +65,7 @@ export class N8nService {
   }
 
   async updateWorkflow(id, name, nodes, connections, settings = {}) {
+    debug(`updateWorkflow: ${id}`);
     try {
       const payload = { name, nodes, connections, settings };
       const response = await this.client.put(`/workflows/${id}`, payload);
@@ -51,6 +76,7 @@ export class N8nService {
   }
 
   async deleteWorkflow(id) {
+    debug(`deleteWorkflow: ${id}`);
     try {
       const response = await this.client.delete(`/workflows/${id}`);
       return response.data;
@@ -60,6 +86,7 @@ export class N8nService {
   }
 
   async activateWorkflow(id, active = true) {
+    debug(`activateWorkflow: ${id} -> ${active}`);
     try {
         try {
             // Standard n8n v1 way
@@ -79,6 +106,7 @@ export class N8nService {
   }
 
   async executeWorkflow(id, data = {}) {
+    debug(`executeWorkflow: ${id}`);
     try {
       const response = await this.client.post(`/workflows/${id}/execute`, { data });
       return response.data;
@@ -88,6 +116,7 @@ export class N8nService {
   }
 
   async getExecutions(workflowId, limit = 5) {
+    debug(`getExecutions: ${workflowId || 'all'} (limit: ${limit})`);
     try {
       const params = { limit, includeData: true };
       if (workflowId) params.workflowId = workflowId;
@@ -99,6 +128,7 @@ export class N8nService {
   }
 
   async getExecution(id) {
+    debug(`getExecution: ${id}`);
     try {
       const response = await this.client.get(`/executions/${id}`);
       return response.data;
@@ -108,6 +138,7 @@ export class N8nService {
   }
 
   async getCredential(id) {
+    debug(`getCredential: ${id}`);
     try {
       const response = await this.client.get(`/credentials/${id}`);
       return response.data;
@@ -118,6 +149,7 @@ export class N8nService {
   }
 
   async createCredential(name, type, data) {
+    debug(`createCredential: ${name} (${type})`);
     try {
       const payload = { name, type, data };
       const response = await this.client.post('/credentials', payload);
@@ -128,6 +160,7 @@ export class N8nService {
   }
 
   async listCredentials() {
+    debug(`listCredentials`);
     try {
       const response = await this.client.get('/credentials');
       return response.data;
@@ -139,6 +172,7 @@ export class N8nService {
   }
 
   async getNodeTypes() {
+    debug(`getNodeTypes`);
     try {
         const response = await this.client.get('/node-types');
         return response.data;
@@ -150,6 +184,7 @@ export class N8nService {
   }
 
   async searchNodeTypes(query) {
+      debug(`searchNodeTypes: ${query}`);
       try {
           const allNodes = await this.getNodeTypes();
           
@@ -172,6 +207,7 @@ export class N8nService {
   }
 
   async getNodeDetails(nodeTypeName) {
+      debug(`getNodeDetails: ${nodeTypeName}`);
       try {
           const allNodes = await this.getNodeTypes();
           
@@ -193,6 +229,8 @@ export class N8nService {
     if (data?.hint) msg += ` (Hint: ${data.hint})`;
     if (data?.details) msg += ` (Details: ${JSON.stringify(data.details)})`;
     
+    // Log full error to debug, but simple message to console
+    debug(`API Error Detail:`, error.response?.data || error);
     console.error(`[N8nService] Error: ${msg}`);
     throw new Error(`N8n API Error: ${msg}`);
   }
