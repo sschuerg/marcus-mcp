@@ -178,8 +178,23 @@ async function main() {
 
     console.log(`[Webhook] Executing tool: ${toolName}`);
     try {
-      const result = await tool.handler(args || {});
-      res.json(result);
+      // Result is now an MCP Standard Object: { content: [{ type: "text", text: "JSON..." }] }
+      const mcpResult = await tool.handler(args || {});
+      
+      // Unwrap logic for HTTP clients
+      if (mcpResult.content && Array.isArray(mcpResult.content) && mcpResult.content[0]?.text) {
+          try {
+              const rawResult = JSON.parse(mcpResult.content[0].text);
+              return res.json(rawResult);
+          } catch (parseError) {
+              console.warn("[Webhook] Failed to parse tool response content as JSON, returning raw text.");
+              return res.json({ result: mcpResult.content[0].text });
+          }
+      }
+      
+      // Fallback if structure is unexpected
+      res.json(mcpResult);
+
     } catch (error) {
       console.error(`[Webhook Error] Tool '${toolName}' failed:`, error);
       res.status(500).json({ 

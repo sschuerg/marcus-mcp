@@ -1,8 +1,33 @@
 import { N8nService } from '../n8nService.js';
 import { config } from '../env.js';
-// We assume there might be a postgres service or similar if we wanted to query directly, 
-// but for now let's use n8n to proxy these requests if possible, or just mock it if not available.
-// Given the prompt, let's provide a tool to "Check Sherlock Logs".
+
+/**
+ * Helper to format success response for MCP
+ */
+const formatResponse = (data) => ({
+  content: [
+    {
+      type: "text",
+      text: JSON.stringify(data, null, 2)
+    }
+  ]
+});
+
+/**
+ * Helper to format error response for MCP
+ */
+const formatError = (error) => ({
+  content: [
+    {
+      type: "text",
+      text: JSON.stringify({
+        error: error.message,
+        stack: error.stack
+      }, null, 2)
+    }
+  ],
+  isError: true
+});
 
 export const sherlockTools = [
   {
@@ -15,13 +40,17 @@ export const sherlockTools = [
       },
     },
     handler: async (args) => {
-      // In a real scenario, this might query Postgres. 
-      // Here we can try to find the SHERLOCK workflow and see its executions or similar.
-      // For now, let's just return a helpful message that Sherlock is active.
-      return {
-        message: "Sherlock is active and logging to error_incidents table.",
-        incidents: "Please check the 'SHERLOCK' workflow executions in n8n for detailed logs."
-      };
+      try {
+        // In a real scenario, this might query Postgres. 
+        // Here we can try to find the SHERLOCK workflow and see its executions or similar.
+        // For now, let's just return a helpful message that Sherlock is active.
+        return formatResponse({
+          message: "Sherlock is active and logging to error_incidents table.",
+          incidents: "Please check the 'SHERLOCK' workflow executions in n8n for detailed logs."
+        });
+      } catch (error) {
+        return formatError(error);
+      }
     },
   },
 ];

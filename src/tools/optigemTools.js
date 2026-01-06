@@ -3,6 +3,34 @@ import { N8nService } from '../n8nService.js';
 const n8n = new N8nService();
 
 /**
+ * Helper to format success response for MCP
+ */
+const formatResponse = (data) => ({
+  content: [
+    {
+      type: "text",
+      text: JSON.stringify(data, null, 2)
+    }
+  ]
+});
+
+/**
+ * Helper to format error response for MCP
+ */
+const formatError = (error) => ({
+  content: [
+    {
+      type: "text",
+      text: JSON.stringify({
+        error: error.message,
+        stack: error.stack
+      }, null, 2)
+    }
+  ],
+  isError: true
+});
+
+/**
  * Optigem Knowledge Tools
  */
 export const optigemTools = [
@@ -23,10 +51,10 @@ export const optigemTools = [
           query: args.query
         });
 
-        return response.data;
+        return formatResponse(response.data);
       } catch (error) {
         console.error("[Optigem Tool Error]:", error);
-        throw new Error(`Failed to query Optigem via n8n: ${error.message}`);
+        return formatError(new Error(`Failed to query Optigem via n8n: ${error.message}`));
       }
     },
   },
