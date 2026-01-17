@@ -1,20 +1,32 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-/**
- * Configuration management
- * All sensitive keys are expected to be provided via environment variables
- * (e.g., from docker/secrets/secrets.env)
- */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load .env
+dotenv.config({ path: join(__dirname, '../.env') });
+
+// Load secrets.env (overrides .env)
+dotenv.config({ path: join(__dirname, '../secrets.env') });
+
 export const config = {
   PORT: process.env.PORT || '3000',
-  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
-  N8N_API_KEY: process.env.N8N_API_KEY,
-  N8N_BASE_URL: process.env.N8N_API_BASE_URL || process.env.N8N_BASE_URL || 'https://n8n.inri-consulting.de/api/v1',
   MCP_SERVER_NAME: process.env.MCP_SERVER_NAME || 'MARCUS',
-  MCP_SERVER_VERSION: process.env.MCP_SERVER_VERSION || '1.1.0',
-  MCP_BEARER_TOKEN: process.env.MCP_BEARER_TOKEN || process.env.MCP_N8N_AGENT_TOKEN
+  MCP_SERVER_VERSION: process.env.MCP_SERVER_VERSION || '1.0.0',
+  // Prefer N8N_API_BASE_URL (from secrets.env), fallback to N8N_BASE_URL or default
+  N8N_BASE_URL: process.env.N8N_API_BASE_URL || process.env.N8N_BASE_URL || 'http://localhost:5678',
+  N8N_API_KEY: process.env.N8N_API_KEY || '',
+  MCP_BEARER_TOKEN: process.env.MCP_BEARER_TOKEN || '',
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
 };
 
-if (!config.N8N_API_KEY) {
-  console.warn("WARNING: N8N_API_KEY is not defined in the environment.");
-}
+console.log('✅ Config loaded:', {
+  PORT: config.PORT,
+  MCP_SERVER_NAME: config.MCP_SERVER_NAME,
+  N8N_BASE_URL: config.N8N_BASE_URL,
+  N8N_API_KEY: config.N8N_API_KEY ? '***' + config.N8N_API_KEY.slice(-4) : 'NOT SET',
+  MCP_BEARER_TOKEN: config.MCP_BEARER_TOKEN ? 'SET' : 'NOT SET',
+  OPENROUTER_API_KEY: config.OPENROUTER_API_KEY ? 'SET' : 'NOT SET'
+});

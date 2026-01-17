@@ -1,0 +1,864 @@
+// n8n 2.2.6+ Complete Node Type Reference for MARCUS MCP Server
+// Generated: 2026-01-17 based on official n8n docs
+
+export interface N8nNodeTemplate {
+  type: string;
+  typeVersion: number;
+  category: string;
+  parameters: Record<string, any>;
+  description: string;
+}
+
+export const N8N_CORE_NODES: Record<string, N8nNodeTemplate> = {
+  
+  // ==================== TRIGGER NODES ====================
+  
+  webhook: {
+    type: "n8n-nodes-base.webhook",
+    typeVersion: 2,
+    category: "trigger",
+    description: "HTTP Webhook trigger for external requests",
+    parameters: {
+      httpMethod: "POST",
+      path: "webhook-path",
+      responseMode: "lastNode",
+      options: {}
+    }
+  },
+
+  manualTrigger: {
+    type: "n8n-nodes-base.manualTrigger",
+    typeVersion: 1,
+    category: "trigger",
+    description: "Manual workflow trigger",
+    parameters: {}
+  },
+
+  scheduleTrigger: {
+    type: "n8n-nodes-base.scheduleTrigger",
+    typeVersion: 1,
+    category: "trigger",
+    description: "Time-based cron trigger",
+    parameters: {
+      rule: {
+        interval: [{
+          field: "cronExpression",
+          expression: "0 0 * * *"
+        }]
+      }
+    }
+  },
+
+  // ==================== DATA TRANSFORMATION ====================
+
+  editFields: {
+    type: "n8n-nodes-base.set",
+    typeVersion: 3,
+    category: "data",
+    description: "Set/Edit field values",
+    parameters: {
+      assignments: {
+        assignments: [{
+          id: "1",
+          name: "fieldName",
+          value: "fieldValue",
+          type: "string"
+        }]
+      },
+      options: {}
+    }
+  },
+
+  code: {
+    type: "n8n-nodes-base.code",
+    typeVersion: 2,
+    category: "data",
+    description: "Execute JavaScript/Python",
+    parameters: {
+      language: "javaScript",
+      jsCode: "return $input.all();",
+      mode: "runOnceForAllItems"
+    }
+  },
+
+  merge: {
+    type: "n8n-nodes-base.merge",
+    typeVersion: 3,
+    category: "data",
+    description: "Merge data from inputs",
+    parameters: {
+      mode: "append",
+      options: {}
+    }
+  },
+
+  aggregate: {
+    type: "n8n-nodes-base.aggregate",
+    typeVersion: 1,
+    category: "data",
+    description: "Sum, avg, count operations",
+    parameters: {
+      aggregate: "aggregateAllItemData",
+      fieldsToAggregate: { fieldToAggregate: [] }
+    }
+  },
+
+  sort: {
+    type: "n8n-nodes-base.sort",
+    typeVersion: 1,
+    category: "data",
+    description: "Sort items by fields",
+    parameters: {
+      sortFieldsUi: {
+        sortField: [{
+          fieldName: "fieldName",
+          order: "ascending"
+        }]
+      }
+    }
+  },
+
+  splitOut: {
+    type: "n8n-nodes-base.splitOut",
+    typeVersion: 1,
+    category: "data",
+    description: "Split arrays into items",
+    parameters: {
+      fieldToSplitOut: "arrayField",
+      options: {}
+    }
+  },
+
+  // ==================== FLOW CONTROL ====================
+
+  if: {
+    type: "n8n-nodes-base.if",
+    typeVersion: 2,
+    category: "flow",
+    description: "Conditional routing",
+    parameters: {
+      conditions: {
+        options: { combineOperation: "all" },
+        conditions: [{
+          leftValue: "={{ $json.field }}",
+          rightValue: "value",
+          operation: "equals"
+        }]
+      }
+    }
+  },
+
+  switch: {
+    type: "n8n-nodes-base.switch",
+    typeVersion: 3,
+    category: "flow",
+    description: "Multi-way routing",
+    parameters: {
+      mode: "rules",
+      rules: {
+        rules: [{
+          output: 0,
+          conditions: {
+            conditions: [{
+              leftValue: "={{ $json.status }}",
+              rightValue: "active",
+              operation: "equals"
+            }]
+          }
+        }]
+      },
+      fallbackOutput: "extra"
+    }
+  },
+
+  loop: {
+    type: "n8n-nodes-base.loop",
+    typeVersion: 1,
+    category: "flow",
+    description: "Loop iterations",
+    parameters: {
+      loopMode: "loopOverItems",
+      maxIterations: 100
+    }
+  },
+
+  wait: {
+    type: "n8n-nodes-base.wait",
+    typeVersion: 1,
+    category: "flow",
+    description: "Pause execution",
+    parameters: {
+      resume: "after",
+      amount: 5,
+      unit: "seconds"
+    }
+  },
+
+  // ==================== HTTP & API ====================
+
+  httpRequest: {
+    type: "n8n-nodes-base.httpRequest",
+    typeVersion: 4,
+    category: "api",
+    description: "HTTP API requests",
+    parameters: {
+      method: "POST",
+      url: "https://api.example.com/endpoint",
+      authentication: "none",
+      sendBody: true,
+      bodyParametersJson: "{{ $json }}",
+      options: {
+        response: {
+          response: { responseFormat: "json" }
+        }
+      }
+    }
+  },
+
+  respondToWebhook: {
+    type: "n8n-nodes-base.respondToWebhook",
+    typeVersion: 1,
+    category: "api",
+    description: "Send webhook response",
+    parameters: {
+      respondWith: "allEntries",
+      responseBody: "{{ $json }}",
+      options: {}
+    }
+  },
+
+  // ==================== AI & LLM ====================
+
+  aiAgent: {
+    type: "@n8n/n8n-nodes-langchain.agent",
+    typeVersion: 1,
+    category: "ai",
+    description: "AI Agent with tools",
+    parameters: {
+      prompt: "You are a helpful assistant",
+      hasOutputParser: false,
+      options: {}
+    }
+  },
+
+  // ==================== DATABASE ====================
+
+  postgres: {
+    type: "n8n-nodes-base.postgres",
+    typeVersion: 2,
+    category: "database",
+    description: "PostgreSQL operations",
+    parameters: {
+      operation: "executeQuery",
+      query: "SELECT * FROM table WHERE id = $1",
+      options: {}
+    }
+  },
+
+  // ==================== UTILITIES ====================
+
+  executeWorkflow: {
+    type: "n8n-nodes-base.executeWorkflow",
+    typeVersion: 1,
+    category: "utility",
+    description: "Execute another workflow",
+    parameters: {
+      source: "database",
+      workflowId: "{{ $json.workflowId }}",
+      waitForSubWorkflow: true
+    }
+  },
+
+  executeCommand: {
+    type: "n8n-nodes-base.executeCommand",
+    typeVersion: 1,
+    category: "utility",
+    description: "Execute shell commands",
+    parameters: {
+      command: "ls -la",
+      cwd: "/tmp"
+    }
+  },
+
+  readBinaryFile: {
+    type: "n8n-nodes-base.readBinaryFile",
+    typeVersion: 1,
+    category: "utility",
+    description: "Read files",
+    parameters: {
+      filePath: "/path/to/file.txt"
+    }
+  },
+
+  writeBinaryFile: {
+    type: "n8n-nodes-base.writeBinaryFile",
+    typeVersion: 1,
+    category: "utility",
+    description: "Write files",
+    parameters: {
+      fileName: "={{ $json.filename }}",
+      dataPropertyName: "data",
+      options: {}
+    }
+  }
+};
+
+// ==================== MCP NODES ====================
+
+export const N8N_MCP_NODES: Record<string, N8nNodeTemplate> = {
+  
+  mcpClient: {
+    type: "n8n-nodes-mcp.mcpClient",
+    typeVersion: 1,
+    category: "mcp",
+    description: "MCP Client integration",
+    parameters: {
+      operation: "executeTools",
+      tool: "tool_name",
+      toolArguments: "{\"key\": \"value\"}",
+      connectionType: "httpStreamable"
+    }
+  }
+};
+
+// ==================== HELPER FUNCTIONS ====================
+
+export function getNodeTemplate(nodeType: string): N8nNodeTemplate | undefined {
+  return N8N_CORE_NODES[nodeType] || N8N_MCP_NODES[nodeType];
+}
+
+export function getNodesByCategory(category: string): N8nNodeTemplate[] {
+  return Object.values({...N8N_CORE_NODES, ...N8N_MCP_NODES})
+    .filter(node => node.category === category);
+}
+
+export function getAllNodeTypes(): string[] {
+  return [...Object.keys(N8N_CORE_NODES), ...Object.keys(N8N_MCP_NODES)];
+}
+
+export default {
+  N8N_CORE_NODES,
+  N8N_MCP_NODES,
+  getNodeTemplate,
+  getNodesByCategory,
+  getAllNodeTypes
+};
+
+// ==================== APP INTEGRATION NODES (n8n 2.2+) ====================
+
+export const N8N_APP_NODES: Record<string, N8nNodeTemplate> = {
+
+  // === COMMUNICATION ===
+  
+  slack: {
+    type: "n8n-nodes-base.slack",
+    typeVersion: 2,
+    category: "communication",
+    description: "Send messages, upload files, manage Slack channels",
+    parameters: {
+      resource: "message",
+      operation: "post",
+      select: "channel",
+      channelId: { mode: "name", value: "general" },
+      text: "Hello from n8n!",
+      otherOptions: {}
+    }
+  },
+
+  discord: {
+    type: "n8n-nodes-base.discord",
+    typeVersion: 2,
+    category: "communication",
+    description: "Send messages and manage Discord",
+    parameters: {
+      resource: "message",
+      operation: "send",
+      webhookUrl: "",
+      text: "Message from n8n",
+      options: {}
+    }
+  },
+
+  telegram: {
+    type: "n8n-nodes-base.telegram",
+    typeVersion: 1,
+    category: "communication",
+    description: "Telegram Bot API integration",
+    parameters: {
+      resource: "message",
+      operation: "sendMessage",
+      chatId: "",
+      text: "Notification from n8n",
+      additionalFields: {}
+    }
+  },
+
+  // === EMAIL ===
+
+  gmail: {
+    type: "n8n-nodes-base.gmail",
+    typeVersion: 2,
+    category: "email",
+    description: "Gmail email operations",
+    parameters: {
+      resource: "message",
+      operation: "send",
+      sendTo: "",
+      subject: "Automated Email",
+      emailType: "text",
+      message: "Email body",
+      options: {}
+    }
+  },
+
+  // === DATABASES ===
+
+  postgresV2: {
+    type: "n8n-nodes-base.postgres",
+    typeVersion: 2,
+    category: "database",
+    description: "PostgreSQL database (v2.2+ compatible)",
+    parameters: {
+      operation: "executeQuery",
+      query: "SELECT * FROM users WHERE active = true",
+      options: {
+        queryReplacement: ""
+      }
+    }
+  },
+
+  mysql: {
+    type: "n8n-nodes-base.mySql",
+    typeVersion: 2,
+    category: "database",
+    description: "MySQL database operations",
+    parameters: {
+      operation: "executeQuery",
+      query: "SELECT * FROM customers LIMIT 100",
+      options: {}
+    }
+  },
+
+  mongodb: {
+    type: "n8n-nodes-base.mongoDb",
+    typeVersion: 1,
+    category: "database",
+    description: "MongoDB NoSQL database",
+    parameters: {
+      operation: "find",
+      collection: "users",
+      query: "{}",
+      options: {}
+    }
+  },
+
+  redis: {
+    type: "n8n-nodes-base.redis",
+    typeVersion: 1,
+    category: "database",
+    description: "Redis key-value store",
+    parameters: {
+      operation: "set",
+      key: "cache:key",
+      value: "{{ $json.data }}",
+      options: {}
+    }
+  },
+
+  supabase: {
+    type: "n8n-nodes-base.supabase",
+    typeVersion: 1,
+    category: "database",
+    description: "Supabase backend platform",
+    parameters: {
+      resource: "row",
+      operation: "get",
+      tableId: "table_name",
+      filters: {},
+      options: {}
+    }
+  },
+
+  // === PRODUCTIVITY ===
+
+  googleSheets: {
+    type: "n8n-nodes-base.googleSheets",
+    typeVersion: 4,
+    category: "productivity",
+    description: "Google Sheets operations (v4 - n8n 2.2+)",
+    parameters: {
+      resource: "sheet",
+      operation: "appendOrUpdate",
+      documentId: { mode: "list", value: "" },
+      sheetName: { mode: "list", value: "Sheet1" },
+      columns: { 
+        mappingMode: "autoMapInputData",
+        matchingColumns: [],
+        value: {}
+      },
+      options: {}
+    }
+  },
+
+  googleDrive: {
+    type: "n8n-nodes-base.googleDrive",
+    typeVersion: 3,
+    category: "productivity",
+    description: "Google Drive file management",
+    parameters: {
+      resource: "file",
+      operation: "upload",
+      name: "={{ $json.filename }}",
+      parents: [],
+      options: {}
+    }
+  },
+
+  googleCalendar: {
+    type: "n8n-nodes-base.googleCalendar",
+    typeVersion: 1,
+    category: "productivity",
+    description: "Google Calendar events",
+    parameters: {
+      resource: "event",
+      operation: "create",
+      calendarId: "primary",
+      start: "{{ $now.toISO() }}",
+      end: "{{ $now.plus({ hours: 1 }).toISO() }}",
+      summary: "Meeting",
+      options: {}
+    }
+  },
+
+  notion: {
+    type: "n8n-nodes-base.notion",
+    typeVersion: 2,
+    category: "productivity",
+    description: "Notion workspace operations",
+    parameters: {
+      resource: "page",
+      operation: "create",
+      pageId: "",
+      simple: false,
+      properties: {}
+    }
+  },
+
+  airtable: {
+    type: "n8n-nodes-base.airtable",
+    typeVersion: 2,
+    category: "productivity",
+    description: "Airtable database operations",
+    parameters: {
+      operation: "append",
+      application: "",
+      table: "",
+      options: {}
+    }
+  },
+
+  // === AI & LLM (n8n 2.2+) ===
+
+  openAi: {
+    type: "n8n-nodes-base.openAi",
+    typeVersion: 1,
+    category: "ai",
+    description: "OpenAI API (GPT, DALL-E, Whisper)",
+    parameters: {
+      resource: "chat",
+      operation: "message",
+      model: "gpt-4",
+      messages: {
+        values: [{
+          role: "user",
+          content: "={{ $json.prompt }}"
+        }]
+      },
+      options: {}
+    }
+  },
+
+  anthropicClaude: {
+    type: "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+    typeVersion: 1,
+    category: "ai",
+    description: "Anthropic Claude chat model",
+    parameters: {
+      model: "claude-3-5-sonnet-20241022",
+      options: {}
+    }
+  },
+
+  openAiChatModel: {
+    type: "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+    typeVersion: 1,
+    category: "ai",
+    description: "OpenAI Chat Model for AI Agent",
+    parameters: {
+      model: "gpt-4o",
+      options: {
+        temperature: 0.7,
+        maxTokens: 4096
+      }
+    }
+  },
+
+  ollamaModel: {
+    type: "@n8n/n8n-nodes-langchain.lmChatOllama",
+    typeVersion: 1,
+    category: "ai",
+    description: "Ollama local LLM model",
+    parameters: {
+      model: "llama3.1",
+      options: {
+        temperature: 0.7
+      }
+    }
+  },
+
+  aiTransform: {
+    type: "@n8n/n8n-nodes-langchain.toolCode",
+    typeVersion: 1,
+    category: "ai",
+    description: "AI Tool: Custom code execution",
+    parameters: {
+      name: "custom_tool",
+      description: "Execute custom code",
+      language: "javaScript",
+      jsCode: "return { result: 'processed' };"
+    }
+  },
+
+  // === HTTP & API ===
+
+  httpRequestV3: {
+    type: "n8n-nodes-base.httpRequest",
+    typeVersion: 4,
+    category: "api",
+    description: "HTTP Request v4 (n8n 2.2+)",
+    parameters: {
+      method: "POST",
+      url: "https://api.example.com/endpoint",
+      authentication: "none",
+      sendBody: true,
+      specifyBody: "json",
+      jsonBody: "={{ $json }}",
+      options: {
+        response: {
+          response: {
+            responseFormat: "autodetect"
+          }
+        },
+        timeout: 10000
+      }
+    }
+  },
+
+  graphql: {
+    type: "n8n-nodes-base.graphql",
+    typeVersion: 1,
+    category: "api",
+    description: "GraphQL API requests",
+    parameters: {
+      requestMethod: "POST",
+      endpoint: "https://api.example.com/graphql",
+      query: "query { users { id name } }",
+      variables: "{}"
+    }
+  },
+
+  // === CRM & SALES ===
+
+  hubspot: {
+    type: "n8n-nodes-base.hubspot",
+    typeVersion: 2,
+    category: "crm",
+    description: "HubSpot CRM operations",
+    parameters: {
+      resource: "contact",
+      operation: "create",
+      email: "",
+      additionalFields: {}
+    }
+  },
+
+  salesforce: {
+    type: "n8n-nodes-base.salesforce",
+    typeVersion: 1,
+    category: "crm",
+    description: "Salesforce CRM",
+    parameters: {
+      resource: "lead",
+      operation: "create",
+      company: "",
+      lastName: "",
+      additionalFields: {}
+    }
+  },
+
+  // === PAYMENT & ECOMMERCE ===
+
+  stripe: {
+    type: "n8n-nodes-base.stripe",
+    typeVersion: 1,
+    category: "payment",
+    description: "Stripe payment processing",
+    parameters: {
+      resource: "charge",
+      operation: "create",
+      amount: 1000,
+      currency: "usd",
+      source: "",
+      additionalFields: {}
+    }
+  },
+
+  shopify: {
+    type: "n8n-nodes-base.shopify",
+    typeVersion: 1,
+    category: "ecommerce",
+    description: "Shopify e-commerce platform",
+    parameters: {
+      resource: "product",
+      operation: "getAll",
+      returnAll: false,
+      limit: 50
+    }
+  },
+
+  wooCommerce: {
+    type: "n8n-nodes-base.wooCommerce",
+    typeVersion: 1,
+    category: "ecommerce",
+    description: "WooCommerce WordPress plugin",
+    parameters: {
+      resource: "order",
+      operation: "getAll",
+      returnAll: false,
+      limit: 50
+    }
+  },
+
+  // === DEVELOPER TOOLS ===
+
+  github: {
+    type: "n8n-nodes-base.github",
+    typeVersion: 1,
+    category: "developer",
+    description: "GitHub repository operations",
+    parameters: {
+      resource: "issue",
+      operation: "create",
+      owner: "",
+      repository: "",
+      title: "",
+      body: ""
+    }
+  },
+
+  gitlab: {
+    type: "n8n-nodes-base.gitlab",
+    typeVersion: 1,
+    category: "developer",
+    description: "GitLab project management",
+    parameters: {
+      resource: "issue",
+      operation: "create",
+      projectId: "",
+      title: "",
+      description: ""
+    }
+  },
+
+  jira: {
+    type: "n8n-nodes-base.jira",
+    typeVersion: 1,
+    category: "developer",
+    description: "Jira issue tracking",
+    parameters: {
+      resource: "issue",
+      operation: "create",
+      project: "",
+      issueType: "",
+      summary: "",
+      additionalFields: {}
+    }
+  },
+
+  // === AUTOMATION & INTEGRATION ===
+
+  make: {
+    type: "n8n-nodes-base.make",
+    typeVersion: 1,
+    category: "automation",
+    description: "Make (Integromat) webhook",
+    parameters: {
+      operation: "trigger",
+      webhookUrl: ""
+    }
+  },
+
+  zapier: {
+    type: "n8n-nodes-base.zapier",
+    typeVersion: 1,
+    category: "automation",
+    description: "Zapier webhook integration",
+    parameters: {
+      operation: "trigger",
+      webhookUrl: ""
+    }
+  },
+
+  // === FILE & MEDIA ===
+
+  ssh: {
+    type: "n8n-nodes-base.ssh",
+    typeVersion: 1,
+    category: "file",
+    description: "SSH command execution",
+    parameters: {
+      command: "ls -la",
+      cwd: "/home/user"
+    }
+  },
+
+  ftp: {
+    type: "n8n-nodes-base.ftp",
+    typeVersion: 1,
+    category: "file",
+    description: "FTP file transfer",
+    parameters: {
+      operation: "upload",
+      path: "/remote/path/file.txt"
+    }
+  },
+
+  aws: {
+    type: "n8n-nodes-base.awsS3",
+    typeVersion: 1,
+    category: "file",
+    description: "AWS S3 storage",
+    parameters: {
+      operation: "upload",
+      bucketName: "",
+      fileName: "",
+      binaryData: true
+    }
+  }
+};
+
+// Merge all node types
+export const ALL_NODES = {
+  ...N8N_CORE_NODES,
+  ...N8N_MCP_NODES,
+  ...N8N_APP_NODES
+};
+
+// Update helper functions
+export function getNodeTemplate(nodeType: string): N8nNodeTemplate | undefined {
+  return ALL_NODES[nodeType];
+}
+
+export function getAllNodeTypes(): string[] {
+  return Object.keys(ALL_NODES);
+}

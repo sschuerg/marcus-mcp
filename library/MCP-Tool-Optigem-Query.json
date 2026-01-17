@@ -1,0 +1,30 @@
+{
+  "name": "MCP-Tool-Optigem-Query",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "mcp/optigem", "responseMode": "lastNode", "options": {} },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "webhook",
+      "name": "Webhook Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.body.query }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "id": "sql-query",
+      "name": "Microsoft SQL",
+      "credentials": { "microsoftSql": { "id": "{{CREDENTIAL_ID_OPTIGEM}}", "name": "Marcus-Optigem-SQL" } }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Microsoft SQL", "type": "main", "index": 0 }]] }
+  },
+  "tags": ["MCP-Tool"]
+}

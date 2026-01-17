@@ -1,0 +1,65 @@
+{
+  "name": "MCP-Agent-General-Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mcp/general",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "webhook",
+      "name": "Webhook Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "credentialId": "{{CREDENTIAL_ID_OPENROUTER}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "HTTP-Referer", "value": "https://marcus-mcp.local" },
+            { "name": "X-Title", "value": "MARCUS MCP" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "google/gemini-2.0-flash-exp:free" },
+            {
+              "name": "messages",
+              "value": "={{ [ { \"role\": \"system\", \"content\": \"Du bist ein hilfreicher Assistent.\" }, { \"role\": \"user\", \"content\": $json.body.prompt } ] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "id": "ask-ai",
+      "name": "Ask Gemini Flash"
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: { reply: $input.first().json.choices[0].message.content } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0],
+      "id": "format",
+      "name": "Format Response"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Ask Gemini Flash", "type": "main", "index": 0}]]},
+    "Ask Gemini Flash": {"main": [[{"node": "Format Response", "type": "main", "index": 0}]]}
+  },
+  "tags": ["MCP-Agent"]
+}

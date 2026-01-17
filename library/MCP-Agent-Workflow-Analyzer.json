@@ -1,0 +1,104 @@
+{
+  "name": "MCP-Agent-Workflow-Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mcp/analyze",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.N8N_API_BASE_URL || 'http://marcus-n8n:5678/api/v1' }}/workflows/{{ $json.body.workflowId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $env.N8N_API_KEY }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "id": "get-workflow",
+      "name": "Get Target Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflow = $input.first().json;\nconst clean = {\n  name: workflow.name,\n  nodes: workflow.nodes.map(n => ({\n    name: n.name,\n    type: n.type,\n    notes: n.notes,\n    parameters: n.parameters\n  })),\n  connections: workflow.connections\n};\nreturn { json: { cleanJson: JSON.stringify(clean) } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0],
+      "id": "clean-json",
+      "name": "Clean JSON"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "credentialId": "{{CREDENTIAL_ID_OPENROUTER}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "HTTP-Referer",
+              "value": "https://marcus-mcp.local"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen/qwen-2.5-coder-32b-instruct:free"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [ { \"role\": \"system\", \"content\": \"Du bist ein n8n Experte. Analysiere den Workflow.\" }, { \"role\": \"user\", \"content\": $json.cleanJson } ] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "id": "ask-ai",
+      "name": "Ask Qwen Coder"
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: { analysis: $input.first().json.choices[0].message.content } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 0],
+      "id": "format-response",
+      "name": "Format Response"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Get Target Workflow", "type": "main", "index": 0 }]] },
+    "Get Target Workflow": { "main": [[{ "node": "Clean JSON", "type": "main", "index": 0 }]] },
+    "Clean JSON": { "main": [[{ "node": "Ask Qwen Coder", "type": "main", "index": 0 }]] },
+    "Ask Qwen Coder": { "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]] }
+  },
+  "tags": ["MCP-Agent"]
+}
