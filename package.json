@@ -17,10 +17,10 @@
     "mssql": "^12.2.0"
   },
   "devDependencies": {
+    "@types/node": "^25.0.9",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.6",
     "@types/mssql": "^9.1.9",
-    "@types/node": "^25.0.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

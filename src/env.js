@@ -20,6 +20,7 @@ export const config = {
   N8N_API_KEY: process.env.N8N_API_KEY || '',
   MCP_BEARER_TOKEN: process.env.MCP_BEARER_TOKEN || '',
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
+  LLM_MODEL_CODING: process.env.LLM_MODEL_CODING || 'qwen/qwen-2.5-coder-32b-instruct',
 };
 
 console.log('✅ Config loaded:', {
@@ -28,5 +29,6 @@ console.log('✅ Config loaded:', {
   N8N_BASE_URL: config.N8N_BASE_URL,
   N8N_API_KEY: config.N8N_API_KEY ? '***' + config.N8N_API_KEY.slice(-4) : 'NOT SET',
   MCP_BEARER_TOKEN: config.MCP_BEARER_TOKEN ? 'SET' : 'NOT SET',
-  OPENROUTER_API_KEY: config.OPENROUTER_API_KEY ? 'SET' : 'NOT SET'
+  OPENROUTER_API_KEY: config.OPENROUTER_API_KEY ? 'SET' : 'NOT SET',
+  LLM_MODEL_CODING: config.LLM_MODEL_CODING
 });

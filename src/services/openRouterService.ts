@@ -5,7 +5,7 @@ import Debug from 'debug';
 const debug = Debug('mcp:ai');
 
 // Coding Model (Best for JSON/Code)
-export const MODEL_CODING = "qwen/qwen-2.5-coder-32b-instruct:free";
+export const MODEL_CODING = config.LLM_MODEL_CODING;
 // General Model (Best for Text/Creative/Reasoning)
 export const MODEL_GENERAL = "google/gemini-2.0-flash-exp:free";
 

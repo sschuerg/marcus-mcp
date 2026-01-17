@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "model",
-              "value": "qwen/qwen-2.5-coder-32b-instruct:free"
+              "value": "qwen/qwen-2.5-coder-32b-instruct"
             },
             {
               "name": "messages",

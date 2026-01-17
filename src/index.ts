@@ -269,6 +269,13 @@ async function main() {
       return res.status(400).json({ error: "Missing 'tool' parameter in request body." });
     }
 
+    // Special case for CLI tool discovery
+    if (toolName === "list_tools") {
+      return res.json({
+        tools: tools.map(t => ({ name: t.name, description: t.description }))
+      });
+    }
+
     switch (toolName) {
       case 'query_optigem_persons': {
         const { searchTerm, mode, limit } = args as any;
